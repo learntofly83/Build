@@ -2,20 +2,32 @@
 
 # This script will be run in chroot under qemu.
 
+wget http://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+
+echo "deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi
+deb-src http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi
+" > /etc/apt/sources.list
+
+echo "deb http://archive.raspberrypi.org/debian/ jessie main
+" > /etc/apt/sources.list.d/raspi.list
+
+
+
 echo "Creating Fstab File"
 
 touch /etc/fstab
 echo "proc            /proc           proc    defaults        0       0
-/dev/mmcblk0p1  /boot           vfat    defaults,utf8,user,rw,umask=111,dmask=000        0       1
-tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=0777,gid=4, 0 0 
-tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=0755 0 0
-tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=0755 0 0
-tmpfs   /tmp                    tmpfs   defaults,noatime,mode=0755 0 0
+/dev/mmcblk0p1  /boot           vfat    defaults,noatime  0       2
+/dev/mmcblk0p2  /               ext4    defaults,noatime  0       1
+tmpfs   /var/log                tmpfs   size=20M,nodev,uid=1000,mode=1777,gid=4, 0 0 
+tmpfs   /var/cache/apt/archives tmpfs   defaults,noexec,nosuid,nodev,mode=1755 0 0
+tmpfs   /var/spool/cups         tmpfs   defaults,noatime,mode=1755 0 0
+tmpfs   /var/spool/cups/tmp     tmpfs   defaults,noatime,mode=1755 0 0
+tmpfs   /tmp                    tmpfs   defaults,noatime,mode=1755 0 0
 " > /etc/fstab
 
-# echo "Writing cmdline file"
-# echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
+echo "Writing cmdline file"
+echo "dwc_otg.lpm_enable=0 console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait" > /boot/cmdline.txt
 
 echo "Adding BCM Module"
 
@@ -38,7 +50,7 @@ mkdir /lib/firmware
 echo y | SKIP_BACKUP=1 rpi-update a51e2e072f2c349b40887dbdb8029f9a78c01987
 
 echo "Adding raspi-config"
-wget -P /raspi-config_20151019_all.deb /http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
+wget -P /raspi-config_20151019_all.deb http://archive.raspberrypi.org/debian/pool/main/r/raspi-config/raspi-config_20151019_all.deb
 apt-get -y install libnewt0.52 whiptail parted triggerhappy lua5.1
 dpkg -i raspi-config_20151019_all.deb
 rm /raspi-config_20151019_all.deb
